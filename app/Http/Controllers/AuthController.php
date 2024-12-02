@@ -81,7 +81,7 @@ class AuthController extends Controller
                 return redirect()->route('dashboard')->with('auth_token', $token);
             }
 
-            return redirect()->route('user-home')->with('auth_token', $token);
+            return redirect()->route('user-home')->with('auth_token', $token)->with('toast_success', 'Login successful!');;
         }
 
         $credentials = $request->only('email', 'password');
@@ -95,10 +95,10 @@ class AuthController extends Controller
         $token = $user->createToken('auth_token')->plainTextToken;
 
         if ($user->level === 'Admin') {
-            return redirect()->route('dashboard')->with('auth_token', $token);
+            return redirect()->route('dashboard')->with('auth_token', $token)->with('toast_success', 'Login successful!');;
         }
 
-        return redirect()->route('user-home')->with('auth_token', $token);
+        return redirect()->route('user-home')->with('auth_token', $token)->with('toast_success', 'Login successful!');;
     }
 
 
@@ -114,6 +114,6 @@ class AuthController extends Controller
         }
 
         Auth::guard('web')->logout();
-        return redirect()->route('login')->with('status', 'Logged out successfully');
+        return redirect()->route('login')->with('toast_success', 'Logged Out Successful!');;
     }
 }

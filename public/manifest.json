@@ -2,7 +2,7 @@
     "name": "Sivinaries",
     "short_name": "SVNR",
     "description": "",
-    "start_url": "https://sivinaries.my.id/",
+    "start_url": "http://localhost:8000/",
     "display": "fullscreen",
     "background_color": "#ffffff",
     "theme_color": "#ffffff",

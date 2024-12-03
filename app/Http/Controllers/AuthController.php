@@ -101,15 +101,12 @@ class AuthController extends Controller
         return redirect()->route('user-home')->with('auth_token', $token)->with('toast_success', 'Login successful!');;
     }
 
-
     public function logout(Request $request)
     {
         if ($user = Auth::guard('web')->user()) {
-            // Set device_id to null
             $user->device_id = null;
             $user->save(); // Save the change to the database
 
-            // Revoke all tokens
             $user->tokens()->delete();
         }
 

@@ -48,7 +48,6 @@ class AuthController extends Controller
         $user->qr_token = $qrToken;
         $user->save();  // Save the additional attributes
 
-        // Create a token for the user
         $token = $user->createToken('auth_token')->plainTextToken;
 
         return redirect('/')->with('toast_success', 'Registration successful!')

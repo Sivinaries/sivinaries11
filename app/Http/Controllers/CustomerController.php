@@ -54,7 +54,7 @@ class CustomerController extends Controller
     {
         $user = auth()->user();
 
-        $cart = $user->carts()->latest()->first();
+        $cart = $user->carts()->with(['cartMenus.menu'])->latest()->first();
 
         if (!$cart) {
             $cart = $user->carts()->create([]);

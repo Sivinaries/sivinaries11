@@ -75,6 +75,7 @@ class ProductController extends Controller
         $menu = Cache::remember("menu_{$id}", now()->addMinutes(60), function () use ($id) {
             return Menu::find($id);
         });
+        
         $discount = Cache::remember('discounts', now()->addMinutes(60), function () {
             return Discount::all();
         });

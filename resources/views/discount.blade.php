@@ -43,9 +43,9 @@
                                 @foreach ($discounts as $item)
                                     <tr class="border-2">
                                         <td>{{ $no++ }}</td>
-                                        <td>{{ $item->created_at }}</td>
-                                        <td>{{ $item->name }}</td>
-                                        <td>{{ $item->percentage }} %</td>
+                                        <td>{{ $item->created_at ?? 'N/A'}}</td>
+                                        <td>{{ $item->name ?? 'N/A'}}</td>
+                                        <td>{{ $item->percentage ?? 'N/A'}} %</td>
                                         <td class="flex gap-2">
                                             <div class="w-full">
                                                 <a href="{{ route('editdiscount', ['id' => $item->id]) }}">

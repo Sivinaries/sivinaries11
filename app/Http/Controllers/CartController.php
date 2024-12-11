@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Cart;
 use App\Models\Menu;
 use App\Models\CartMenu;
 use App\Models\Discount;

@@ -44,7 +44,7 @@ class AuthController extends Controller
         ]);
 
         $user->level = 'User';
-        $user->save();  // Save the additional attributes
+        $user->save();
 
         $token = $user->createToken('auth_token')->plainTextToken;
 
@@ -105,7 +105,7 @@ class AuthController extends Controller
         
     public function logout(Request $request)
     {
-        foreach (config('auth.guards') as $guard => $guardConfig) {
+        foreach (config('auth.guards') as $guard) {
             if (Auth::guard($guard)->check()) {
                 $user = Auth::guard($guard)->user();
                 if ($user) {

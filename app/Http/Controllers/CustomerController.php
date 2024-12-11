@@ -8,26 +8,14 @@ use App\Models\Order;
 use App\Models\Store;
 use Ramsey\Uuid\Uuid;
 use App\Models\CartMenu;
-use App\Models\Category;
 use App\Models\Discount;
-use App\Models\Showcase;
 use Illuminate\Http\Request;
-use function Laravel\Prompts\select;
 
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 
 class CustomerController extends Controller
 {
-    public function store()
-    {
-        $stores = Cache::remember('stores', now()->addMinutes(60), function () {
-            return Store::all();
-        });
-
-        return view('user.store', compact('stores'));
-    }
-
     public function home()
     {
         if (!Auth::guard('chair')->check()) {
@@ -57,9 +45,6 @@ class CustomerController extends Controller
 
     public function product()
     {
-        if (!Auth::guard('chair')->check()) {
-            return redirect('/');
-        }
 
         $chairStore = Auth::guard('chair')->user()->store;
 
@@ -101,12 +86,14 @@ class CustomerController extends Controller
 
     public function show($id)
     {
+        $chairStore = Auth::guard('chair')->user()->store;
+
         $menu = Cache::remember("menu_{$id}", now()->addMinutes(60), function () use ($id) {
             return Menu::find($id);
         });
 
-        $discount = Cache::remember('discounts', now()->addMinutes(60), function () {
-            return Discount::all();
+        $discount = Cache::remember('discounts', now()->addMinutes(60), function () use ($chairStore) {
+            return $chairStore->discounts;
         });
 
         return view('user.show', compact('menu', 'discount'));
@@ -246,9 +233,11 @@ class CustomerController extends Controller
 
     public function postDelivery(Request $request)
     {
-        $user = auth()->user();
-        // $cabang = Profil::pluck('alamat')->first();
-        $cart = $user->carts()->with('user')->latest()->first();
+        $chairStore = Auth::guard('chair')->user()->store;
+
+        $chair = auth()->user();
+
+        $cart = $chair->carts()->with('user')->latest()->first();
 
         if (!$cart) {
             return redirect()->back()->with('error', 'No cart found.');
@@ -262,7 +251,8 @@ class CustomerController extends Controller
         } else {
             $order = new Order();
             $order->cart_id = $cart->id;
-            $order->cabang = $cabang;
+            $order->store_id = $chairStore->id;
+            $order->cabang = $chairStore->address;
             $order->layanan = 'delivery';
             $order->save();
         }
@@ -272,8 +262,9 @@ class CustomerController extends Controller
 
     public function ongkir(Request $request)
     {
-        $user = auth()->user();
-        $cart = $user->carts()->with('user')->latest()->first();
+        $chair = auth()->user();
+        
+        $cart = $chair->carts()->with('user')->latest()->first();
 
         $order = Order::where('cart_id', $cart->id)->first();
 
@@ -390,18 +381,21 @@ class CustomerController extends Controller
 
     public function game()
     {
-        $products = Menu::select('name', 'img')->get();  // Get product names and image URLs
-
-        return view('user.game', compact('products'));
+        return view('user.game');
     }
 
     public function akun()
     {
-        $userId = auth()->id();
-
-        $user = Cache::remember("akun_{$userId}", now()->addMinutes(60), function () use ($userId) {
-            return User::find($userId); // Fetches the user from the database by ID
+        $chairId = Auth::guard('chair')->user()->id;
+    
+        $cacheKey = 'akun_' . $chairId;
+    
+        $chair = Cache::remember($cacheKey, now()->addMinutes(60), function () use ($chairId) {
+            // Mengambil data pengguna berdasarkan ID dari guard 'chair'
+            return Auth::guard('chair')->user();
         });
-        return view('user.akun', compact('user'));
+    
+        return view('user.akun', compact('chair'));
     }
+    
 }

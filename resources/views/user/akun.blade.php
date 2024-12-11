@@ -35,17 +35,17 @@
                 <div class="space-y-2">
                     <h1><span class="text-red-500">*</span> Nama</h1>
                     <input class="border w-full rounded-xl p-2" type="text" id="layanan" name="layanan"
-                        value="{{ $user->name }}" readonly>
+                        value="{{ $chair->name ?? 'N/A'}}" readonly>
                 </div>
                 <div class="space-y-2">
                     <h1><span class="text-red-500">*</span> Email</h1>
                     <input class="border w-full rounded-xl p-2" type="text" name="cabang"
-                        value="{{ $user->email }}" readonly>
+                        value="{{ $chair->email ?? 'N/A'}}" readonly>
                 </div>
                 <div class="space-y-2">
                     <h1><span class="text-red-500">*</span> Nomor Ponsel</h1>
                     <input class="border w-full rounded-xl p-2" id="no_telpon" name="no_telpon"
-                        value="{{ $user->no_telpon }}" readonly>
+                        value="{{ $chair->no_telpon ?? 'N/A'}}" readonly>
                 </div>
             </div>
         </div>

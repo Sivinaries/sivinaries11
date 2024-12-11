@@ -24,7 +24,7 @@ class CategoryController extends Controller
         $cacheKey = 'categories_user_' . Auth::id();
 
         $category = Cache::remember($cacheKey, now()->addMinutes(60), function () use ($userStore) {
-            return $userStore->categories;  // Get categories for this store
+            return $userStore->categories;
         });
 
         return view('category', compact('category'));

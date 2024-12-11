@@ -51,12 +51,12 @@
                                 @foreach ($settlements as $item)
                                     <tr class="border-2">
                                         <td>{{ $no++ }}</td>
-                                        <td>{{ $item->user->name }}</td>
-                                        <td>{{ $item->start_time }}</td>
-                                        <td>{{ $item->end_time }}</td>
-                                        <td>Rp. {{ number_format($item->start_amount, 0, ',', '.') }}</td>
-                                        <td>Rp. {{ number_format($item->total_amount, 0, ',', '.') }}</td>
-                                        <td>Rp. {{ number_format($item->expected, 0, ',', '.') }}</td>
+                                        <td>{{ $item->user->name ?? 'N/A'}}</td>
+                                        <td>{{ $item->start_time ?? 'N/A'}}</td>
+                                        <td>{{ $item->end_time ?? 'N/A'}}</td>
+                                        <td>Rp. {{ number_format($item->start_amount, 0, ',', '.') ?? 'N/A'}}</td>
+                                        <td>Rp. {{ number_format($item->total_amount, 0, ',', '.') ?? 'N/A'}}</td>
+                                        <td>Rp. {{ number_format($item->expected, 0, ',', '.') ?? 'N/A'}}</td>
                                         <td class="flex  gap-2">
                                             <a href="{{ route('showsettlement', ['id' => $item->id]) }}">
                                                 <h1

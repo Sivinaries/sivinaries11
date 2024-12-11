@@ -41,8 +41,8 @@
                                 @foreach ($category as $item)
                                     <tr class="border-2">
                                         <td>{{ $no++ }}</td>
-                                        <td>{{ $item->created_at }}</td>
-                                        <td>{{ $item->name }}</td>
+                                        <td>{{ $item->created_at ?? 'N/A' }}</td>
+                                        <td>{{ $item->name ?? 'N/A'}}</td>
                                         <td class="flex gap-2">
                                             <div class="w-full">
                                                 <a href="{{ route('editcategory', ['id' => $item->id]) }}">

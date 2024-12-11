@@ -69,12 +69,6 @@
                     </div>
                     
                     <div class="space-y-2">
-                        <h1><span class="text-red-500">*</span> Pilih Layanan</h1>
-                        <input class="border w-full rounded-xl p-2" value="{{ $order->layanan }}" type="text"
-                            id="layanan" name="layanan">
-                    </div>
-
-                    <div class="space-y-2">
                         <h1><span class="text-red-500">*</span> Atas Nama</h1>
                         <input class="border w-full rounded-xl p-2" placeholder="John Doe" id="atas_nama" type="text"
                             name="atas_nama">

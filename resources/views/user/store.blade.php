@@ -82,11 +82,11 @@
                             <a href="{{ route('user-home') }}">
                                 <div class="bg-white p-2 rounded-md border border-red-800 space-y-1">
                                     <div>
-                                        <h1 class="text-black text-sm font-bold">{{ $item->store }}</h1>
+                                        <h1 class="text-black text-sm font-bold">{{ $item->store ?? 'N/A'}}</h1>
                                     </div>
                                     <hr>
                                     <div>
-                                        <h1 class="text-black text-sm font-bold">{{ $item->address }}</h1>
+                                        <h1 class="text-black text-sm font-bold">{{ $item->address ?? 'N/A'}}</h1>
                                     </div>
                                 </div>
                             </a>

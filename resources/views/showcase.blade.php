@@ -43,8 +43,8 @@
                                 @foreach ($showcase as $item)
                                     <tr class="border-2">
                                         <td>{{ $no++ }}</td>
-                                        <td>{{ $item->created_at }}</td>
-                                        <td>{{ $item->name }}</td>
+                                        <td>{{ $item->created_at ?? 'N/A'}}</td>
+                                        <td>{{ $item->name ?? 'N/A'}}</td>
                                         <td>
                                             <img src="{{ asset('storage/img/' . basename($item->img)) }}"
                                                 alt="Product Image" class='mx-auto w-56 h-32 my-auto rounded-xl' />

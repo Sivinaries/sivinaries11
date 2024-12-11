@@ -27,9 +27,6 @@ Route::get('/register', [AuthController::class, 'register'])->name('register');
 Route::post('/signup', [AuthController::class, 'signup'])->name('signup');
 Route::match(['get', 'post'], '/signin', [AuthController::class, 'signin'])->name('signin');
 
-//CUSTOMER CONTROLLER
-Route::get('/user/store', [CustomerController::class, 'store'])->name('user-store');
-
 //QR CONTROLLER
 Route::get('/apriori', [AprioriController::class, 'apriori']);
 

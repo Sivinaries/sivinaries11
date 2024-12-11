@@ -66,27 +66,27 @@
                                 @foreach ($history as $item)
                                     <tr class="border-2">
                                         <td>{{ $no++ }}</td>
-                                        <td>{{ $item->created_at }}</td>
-                                        <td>{{ $item->no_order }}</td>
-                                        <td>{{ $item->name }}</td>
-                                        <td>{{ $item->kursi }}</td>
+                                        <td>{{ $item->created_at ?? 'N/A'}}</td>
+                                        <td>{{ $item->no_order ?? 'N/A'}}</td>
+                                        <td>{{ $item->name ?? 'N/A'}}</td>
+                                        <td>{{ $item->kursi ?? 'N/A'}}</td>
                                         <td>
                                             @php
-                                                $orders = explode(' - ', $item->order);
+                                                $orders = explode(' - ', $item->order ?? 'N/A');
                                             @endphp
                                             @foreach ($orders as $order)
-                                                {{ $order }}
+                                                {{ $order ?? 'N/A' }}
                                                 <br />
                                             @endforeach
                                         </td>
                                         <td>
-                                            {{ $item->payment_type }}
+                                            {{ $item->payment_type ?? 'N/A'}}
                                         </td>
-                                        <td>Rp. {{ number_format($item->total_amount, 0, ',', '.') }}</td>
+                                        <td>Rp. {{ number_format($item->total_amount, 0, ',', '.') ?? 'N/A'}}</td>
                                         <td>
                                             <h1
                                                 class="p-2 w-full text-white rounded-xl text-center @if ($item->status == 'settlement') bg-green-500 @else @endif">
-                                                {{ $item->status }}
+                                                {{ $item->status ?? 'N/A'}}
                                             </h1>
                                         </td>
                                     </tr>

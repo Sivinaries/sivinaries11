@@ -64,11 +64,9 @@
 <div class="h-screen w-full mx-auto bg-gradient-to-b from-red-800 to-gray-100 flex items-center p-4 xl:p-0 2xl:p-0">
         <div class="mx-auto sm:max-w-sm w-full space-y-3 p-8 bg-white rounded-3xl">
             <div class="space-y-3">
-                <a href="{{ route('user-home') }}">
                 <div>
                     <h1 class="text-5xl xl:text-6xl 2xl:text-6xl font-extrabold text-black">Beil</h1>
                 </div>
-            </a>
                 <div>
                     <h1 class="text-2xl xl:text-3xl 2xl:text-3xl font-extrabold text-black">Register</h1>
                     <p class="text-black text-lg xl:text-xl 2xl:text-xl font-extralight">Sign up</p>

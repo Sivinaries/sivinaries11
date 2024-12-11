@@ -8,14 +8,30 @@ use Ramsey\Uuid\Uuid;
 use App\Models\Histoy;
 use App\Models\Settlement;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 
 class OrderController extends Controller
 {
     public function index()
     {
-        $orders = Order::with(['cart.user', 'cart.cartMenus.menu'])->get();
+        if (!Auth::check()) {
+            return redirect('/');
+        }
+
+        $userStore = Auth::user()->store;
+
+        if (!$userStore) {
+            return redirect()->route('addstore');
+        }
+
+        $storeId = $userStore->id;
+
+        $orders = Order::where('store_id', $storeId)
+            ->with(['cart.user', 'cart.chair', 'cart.cartMenus.menu'])
+            ->get();
+
         $statuses = [];
 
         foreach ($orders as $order) {
@@ -60,12 +76,23 @@ class OrderController extends Controller
 
     public function create()
     {
-        $user = auth()->user();
+        if (!Auth::check()) {
+            return redirect('/');
+        }
+
+        $user = Auth::user();
+        $storeId = $user->store->id;
+
+        if (!$storeId) {
+            return redirect('/')->withErrors('No store associated with the user.');
+        }
 
         $cart = $user->carts()->latest()->first();
 
         if (!$cart) {
-            $cart = $user->carts()->create([]);
+            $cart = $user->carts()->create([
+                'store_id' => $storeId,
+            ]);
         }
 
         return view('addorder', compact('cart'));
@@ -73,7 +100,16 @@ class OrderController extends Controller
 
     public function store(Request $request)
     {
-        $user = auth()->user();
+        if (!Auth::check()) {
+            return redirect('/');
+        }
+
+        $user = Auth::user();
+        $storeId = $user->store->id;
+
+        if (!$storeId) {
+            return redirect('/')->withErrors('No store associated with the user.');
+        }
 
         $request->validate([
             'no_telpon' => 'required|string|max:15', // Adjust the validation rules as necessary
@@ -129,6 +165,7 @@ class OrderController extends Controller
         ];
 
         $order = new Order();
+        $order->store_id = $storeId;
         $order->cart_id = $cart->id;
         $order->no_order = $orderId;
         $order->atas_nama = $request->atas_nama;
@@ -171,7 +208,7 @@ class OrderController extends Controller
             foreach ($order->cart->cartMenus as $cartMenu) {
                 $orderDetails .= $cartMenu->menu->name . ' - ' . $cartMenu->quantity . ' - ' . $cartMenu->notes . ' - ';
             }
-            
+
             $history->order = $orderDetails;
             $history->total_amount = $order->cart->total_amount;
             $history->status = $order->status;
@@ -181,7 +218,7 @@ class OrderController extends Controller
             $history->save();
 
             Cache::forget('history');
-            Cache::remember('history', now()->addMinutes(60), function(){
+            Cache::remember('history', now()->addMinutes(60), function () {
                 return Histoy::all();
             });
 

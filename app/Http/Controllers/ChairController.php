@@ -3,10 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Models\Cart;
+use App\Models\Chair;
 use App\Models\User;
 use App\Models\Order;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 
 class ChairController extends Controller
@@ -14,7 +16,21 @@ class ChairController extends Controller
 
     public function index()
     {
-        $users = User::where('level', 'Chair')->get();
+        if (!Auth::check()) {
+            return redirect('/');
+        }
+
+        $userStore = Auth::user()->store;
+
+        if (!$userStore) {
+            return redirect()->route('addstore');
+        }
+
+        $cacheKey = 'chairs_user_' . Auth::id();
+
+        $users = Cache::remember($cacheKey, 60, function () use ($userStore) {
+            return $userStore->chairs()->where('level', 'Chair')->get();
+        });
 
         return view('chair', compact('users'));
     }
@@ -28,39 +44,40 @@ class ChairController extends Controller
 
     public function store(Request $request)
     {
-        $validatedData = $request->validate([
+        $userStore = auth()->user()->store->id;
+
+        $data = $request->validate([
             'name' => 'required|string|max:255',
         ]);
 
         $qrToken = Str::random(32);
 
-        $user = new User();
-        $user->name = $validatedData['name'];
-        $user->password = bcrypt('123456');
-        $user->level = 'Chair';
-        $user->qr_token = $qrToken;
-        $user->save();
+        $deviceId = Str::random(16); // Always generates a new 16 character string
 
-        $token = $user->createToken('auth_token')->plainTextToken;
+        $data = array_merge(
+            $data,
+            [
+                'email' => $deviceId . '@device.com', // You can customize the email or use the chair's device_id
+                'password' => bcrypt('123456'), // Set a default password or handle the password field as needed
+                'level' => 'Chair',
+                'qr_token' => $qrToken,
+                'store_id' => $userStore,
+            ]
+        );
 
-        Cache::forget('users');
-        Cache::remember('users', now()->addMinutes(60), function () {
-            return User::all();
-        });
+        Chair::create($data);
 
-        return redirect('/chair')->with('toast_success', 'Registration successful!')->with('access_token', $token);
+        Cache::forget('chairs_user_' . Auth::id());
+
+        return redirect('/chair')->with('toast_success', 'Registration successful!');
     }
 
     public function destroy($id)
     {
-        Order::whereHas('cart', function ($query) use ($id) {
-            $query->where('user_id', $id);
-        })->delete();
+        Chair::destroy($id);
 
-        Cart::where('user_id', $id)->delete();
-        User::destroy($id);
+        Cache::forget('chairs_user_' . Auth::id());
 
         return redirect(route('chair'))->with('success', 'Kursi Berhasil Dihapus !');
     }
-
 }

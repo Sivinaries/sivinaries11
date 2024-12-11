@@ -8,9 +8,9 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\ChairController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\Pagescontroller;
+use App\Http\Controllers\StoreController;
 use App\Http\Controllers\GoogleController;
 use App\Http\Controllers\HistoyController;
-use App\Http\Controllers\ProfilController;
 use App\Http\Controllers\AprioriController;
 use App\Http\Controllers\ExpenseController;
 use App\Http\Controllers\ProductController;
@@ -21,50 +21,33 @@ use App\Http\Controllers\ShowcaseController;
 use App\Http\Controllers\SettlementController;
 
 
-Route::get('/category', [CategoryController::class, 'index'])->name('category');
 //AUTH CONTROLLER
-Route::get('/', [CustomerController::class, 'home'])->name('user-home');
+Route::get('/', [AuthController::class, 'login'])->name('login');
 Route::get('/register', [AuthController::class, 'register'])->name('register');
-Route::get('/login', [AuthController::class, 'login'])->name('login');
 Route::post('/signup', [AuthController::class, 'signup'])->name('signup');
 Route::match(['get', 'post'], '/signin', [AuthController::class, 'signin'])->name('signin');
 
+//CUSTOMER CONTROLLER
+Route::get('/user/store', [CustomerController::class, 'store'])->name('user-store');
+
 //QR CONTROLLER
-Route::get('/login/qr/{id}', [QrController::class, 'LoginQr'])->name('login-qr');
 Route::get('/apriori', [AprioriController::class, 'apriori']);
 
 //GOOGLE CONTROLLER
 Route::get('/auth/redirect', [GoogleController::class, 'redirectToGoogle'])->name('auth-google');
 Route::get('/auth/callback', [GoogleController::class, 'handleGoogleCallback'])->name('call-google');
 
-
-Route::middleware('auth:sanctum')->group(function () {
-
-    //CUSTOMER
-    
-    Route::get('/user/product', [CustomerController::class, 'product'])->name('user-product');
-    Route::get('/user/cart', [CustomerController::class, 'cart'])->name('user-cart');
-    Route::get('/user/payment', [CustomerController::class, 'payment'])->name('user-payment');
-    Route::get('/user/product/{id}', [CustomerController::class, 'show'])->name('user-show');
-    Route::post('/user/postcart', [CustomerController::class, 'postcart'])->name('user-postcart');
-    Route::delete('/user/cart/{id}/delete', [CustomerController::class, 'removecart'])->name('user-removecart');
-    Route::post('/user/serve/dineIn', [CustomerController::class, 'postdineIn'])->name('user-postdineIn');
-    Route::post('/user/serve/delivery', [CustomerController::class, 'postdelivery'])->name('user-postdelivery');
-    Route::post('/user/ongkir', [CustomerController::class, 'ongkir'])->name('user-ongkir');
-    Route::post('/user/postorder', [CustomerController::class, 'postorder'])->name('user-postorder');
-    Route::get('/user/serve', [CustomerController::class, 'serve'])->name('user-serve');
-    Route::get('/user/locate', [CustomerController::class, 'locate'])->name('user-locate');
-    Route::get('/user/antrian', [CustomerController::class, 'antrian'])->name('user-antrian');
-    Route::get('/user/game', [CustomerController::class, 'game'])->name('user-game');
-    Route::get('/user/akun', [CustomerController::class, 'akun'])->name('user-akun');
-
-
-
+Route::middleware('auth:web')->group(function () {
     //ADMIN
 
     //PAGES CONTROLLER
     Route::get('/dashboard', [Pagescontroller::class, 'dashboard'])->name('dashboard');
     Route::get('/search', [PagesController::class, 'search'])->name('search');
+
+    //STORE CONTROLLER
+    Route::get('/store', [StoreController::class, 'index'])->name('store');
+    Route::get('/addstore', [StoreController::class, 'create'])->name('addstore');
+    Route::post('/poststore', [StoreController::class, 'store'])->name('poststore');
 
     //CHAIR CONTROLLER
     Route::get('/chair', [ChairController::class, 'index'])->name('chair');
@@ -86,11 +69,6 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/order/{orderId}/archive', [OrderController::class, 'archive'])->name('archive');
     Route::post('/cashpayment', [OrderController::class, 'cashpayment'])->name('cashpayment');
 
-    //PROFIL CONTROLLER
-    Route::get('/profil', [ProfilController::class, 'index'])->name('profil');
-    Route::get('/profil/{id}', [ProfilController::class, 'edit'])->name('editprofil');
-    Route::put('/profil/{id}/update', [ProfilController::class, 'update'])->name('updateprofil');
-
     //MENU CONTROLLER
     Route::get('/product', [ProductController::class, 'index'])->name('product');
     Route::get('/createproduct', [ProductController::class, 'create'])->name('addproduct');
@@ -101,19 +79,20 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::delete('/product/{id}/delete', [ProductController::class, 'destroy'])->name('delproduct');
 
     //CATEGORY CONTROLLER
+    Route::get('/category', [CategoryController::class, 'index'])->name('category');
     Route::get('/addcategory', [CategoryController::class, 'create'])->name('addcategory');
     Route::post('/postcategory', [CategoryController::class, 'store'])->name('postcategory');
     Route::get('/editcategory/{id}', [CategoryController::class, 'edit'])->name('editcategory');
     Route::put('/category/{id}/update', [CategoryController::class, 'update'])->name('updatecategory');
     Route::delete('/category/{id}/delete', [CategoryController::class, 'destroy'])->name('delcategory');
 
-     //SHOWCASE CONTROLLER
-     Route::get('/showcase', [ShowcaseController::class, 'index'])->name('showcase');
-     Route::get('/addshowcase', [ShowcaseController::class, 'create'])->name('addshowcase');
-     Route::post('/postshowcase', [ShowcaseController::class, 'store'])->name('postshowcase');
-     Route::get('/editshowcase/{id}', [ShowcaseController::class, 'edit'])->name('editshowcase');
-     Route::put('/showcase/{id}/update', [ShowcaseController::class, 'update'])->name('updateshowcase');
-     Route::delete('/showcase/{id}/delete', [ShowcaseController::class, 'destroy'])->name('delshowcase');
+    //SHOWCASE CONTROLLER
+    Route::get('/showcase', [ShowcaseController::class, 'index'])->name('showcase');
+    Route::get('/addshowcase', [ShowcaseController::class, 'create'])->name('addshowcase');
+    Route::post('/postshowcase', [ShowcaseController::class, 'store'])->name('postshowcase');
+    Route::get('/editshowcase/{id}', [ShowcaseController::class, 'edit'])->name('editshowcase');
+    Route::put('/showcase/{id}/update', [ShowcaseController::class, 'update'])->name('updateshowcase');
+    Route::delete('/showcase/{id}/delete', [ShowcaseController::class, 'destroy'])->name('delshowcase');
 
     //HISTORY CONTROLLER
     Route::get('/history', [Histoycontroller::class, 'index'])->name('history');
@@ -149,7 +128,34 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/createstart', [SettlementController::class, 'poststart'])->name('poststart');
     Route::post('/createtotal', [SettlementController::class, 'posttotal'])->name('posttotal');
 
+    //QR CONTROLLER
+    Route::get('/login/qr/{id}', [QrController::class, 'LoginQr'])->name('login-qr');
+
     //LOGOUT
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
-
 });
+
+Route::middleware('auth:chair')->group(function () {
+
+    //CUSTOMER
+    Route::get('/user/home', [CustomerController::class, 'home'])->name('user-home');
+    Route::get('/user/product', [CustomerController::class, 'product'])->name('user-product');
+    Route::get('/user/cart', [CustomerController::class, 'cart'])->name('user-cart');
+    Route::get('/user/payment', [CustomerController::class, 'payment'])->name('user-payment');
+    Route::get('/user/product/{id}', [CustomerController::class, 'show'])->name('user-show');
+    Route::post('/user/postcart', [CustomerController::class, 'postcart'])->name('user-postcart');
+    Route::delete('/user/cart/{id}/delete', [CustomerController::class, 'removecart'])->name('user-removecart');
+    Route::post('/user/serve/dineIn', [CustomerController::class, 'postdineIn'])->name('user-postdineIn');
+    Route::post('/user/serve/delivery', [CustomerController::class, 'postdelivery'])->name('user-postdelivery');
+    Route::post('/user/ongkir', [CustomerController::class, 'ongkir'])->name('user-ongkir');
+    Route::post('/user/postorder', [CustomerController::class, 'postorder'])->name('user-postorder');
+    Route::get('/user/serve', [CustomerController::class, 'serve'])->name('user-serve');
+    Route::get('/user/locate', [CustomerController::class, 'locate'])->name('user-locate');
+    Route::get('/user/antrian', [CustomerController::class, 'antrian'])->name('user-antrian');
+    Route::get('/user/game', [CustomerController::class, 'game'])->name('user-game');
+    Route::get('/user/akun', [CustomerController::class, 'akun'])->name('user-akun');
+
+    //LOGOUT
+    Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+});
+

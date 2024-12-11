@@ -2,9 +2,9 @@
     <aside id="sidebar"
         class="font-poppins fixed inset-y-0 my-6 ml-4 w-full max-w-72 md:max-w-60 xl:max-w-64 2xl:max-w-64 z-50 rounded-3xl bg-white shadow-2xl overflow-y-scroll transform transition-transform duration-300 -translate-x-full md:translate-x-0 ease-in-out">
         <div class="p-2">
-            <div class="p-8">
+            <div class="p-4">
                 <a class="text-center" href="{{ route('dashboard') }}">
-                    <h1 class="font-extrabold text-4xl text-black">Beil</h1>
+                    <img class="w-24 h-12 mx-auto" src="{{ asset('/img/beil.svg') }}" alt="">
                 </a>
             </div>
             <hr class="mx-5 shadow-2xl bg-transparent rounded-r-xl rounded-l-xl" />
@@ -91,13 +91,6 @@
                         <div class="ml-16 md:ml-14">
                             <a href="{{ route('expense') }}">
                                 <h1 class="text-gray-500 hover:text-black text-base font-normal">Expense</h1>
-                            </a>
-                        </div>
-                    </li>
-                    <li class="p-4 mx-2">
-                        <div class="ml-16 md:ml-14">
-                            <a href="{{ route('user') }}">
-                                <h1 class="text-gray-500 hover:text-black text-base font-normal">User</h1>
                             </a>
                         </div>
                     </li>

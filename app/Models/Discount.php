@@ -8,10 +8,19 @@ use Illuminate\Database\Eloquent\Model;
 class Discount extends Model
 {
     use HasFactory;
-    protected $fillable = ['name', 'percentage'];
+    protected $fillable = [
+        'store_id',
+        'name',
+        'percentage'
+    ];
 
     public function cartMenus()
     {
         return $this->hasMany(CartMenu::class);
+    }
+
+    public function store()
+    {
+        return $this->belongsTo(Store::class);
     }
 }

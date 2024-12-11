@@ -3,32 +3,49 @@
 namespace App\Http\Controllers;
 
 use App\Models\Menu;
-use App\Models\Discount;
 use App\Models\CartMenu;
 use App\Models\Category;
+use App\Models\Discount;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 
 class ProductController extends Controller
 {
     public function index()
     {
-        $menus = Cache::remember('menus', now()->addMinutes(60), function () {
-            return Menu::all();
-        });
+        if (!Auth::check()) {
+            return redirect('/');
+        }
+        $userStore = Auth::user()->store;
 
+        if (!$userStore) {
+            return redirect()->route('addstore');
+        }
+    
+        $cacheKey = 'menus_user_' . Auth::id();
+        
+        $menus = Cache::remember($cacheKey, now()->addMinutes(60), function () use ($userStore) {
+            return $userStore->menus; 
+        });
+    
         return view('product', compact('menus'));
     }
+    
 
     public function create()
     {
-        $category = Category::all();
+        $userStore = Auth::user()->store;
+
+        $category = $userStore->categories;
 
         return view('addproduct', compact('category'));
     }
 
     public function store(Request $request)
     {
+        $userStore = auth()->user()->store;
+
         $data = $request->validate([
             'name' => 'required',
             'price' => 'required',
@@ -36,6 +53,8 @@ class ProductController extends Controller
             'description' => 'required',
             'category_id' => 'required',
         ]);
+
+        $data['store_id'] = $userStore->id;
 
         if ($request->hasFile('img')) {
             $uploadedImage = $request->file('img');
@@ -46,22 +65,7 @@ class ProductController extends Controller
 
         Menu::create($data);
 
-        // Clear the old cache
-        Cache::forget('menus');
-        Cache::remember('menus', now()->addMinutes(60), function () {
-            return Menu::all();
-        });
-
-        Cache::forget('categories');
-        Cache::remember('categories', now()->addMinutes(60), function () {
-            return Category::all();
-        });
-
-        // Clear and re-cache categories with menus
-        Cache::forget('categories_with_menus');
-        Cache::remember('categories_with_menus', now()->addMinutes(60), function () {
-            return Category::with(['menus'])->get();
-        });
+        Cache::forget('menus_user_' . Auth::id());
 
         return redirect(route('product'))->with('success', 'Product Sukses Dibuat !');
     }
@@ -89,6 +93,8 @@ class ProductController extends Controller
 
     public function update(Request $request, $id)
     {
+        $userStore = auth()->user()->store;
+
         $request->validate([
             'name' => 'required',
             'price' => 'required',
@@ -99,6 +105,8 @@ class ProductController extends Controller
 
         $menuData = $request->only(['name', 'price', 'img', 'description', 'category_id']);
 
+        $menuData['store_id'] = $userStore->id;
+
         if ($request->hasFile('img')) {
             $uploadedImage = $request->file('img');
             $imageName = $uploadedImage->getClientOriginalName();
@@ -108,22 +116,8 @@ class ProductController extends Controller
 
         Menu::where('id', $id)->update($menuData);
 
-        // Clear the old cache
-        Cache::forget('menus');
-        Cache::remember('menus', now()->addMinutes(60), function () {
-            return Menu::all();
-        });
+        Cache::forget('menus_user_' . Auth::id());
 
-        Cache::forget('categories');
-        Cache::remember('categories', now()->addMinutes(60), function () {
-            return Category::all();
-        });
-
-        // Clear and re-cache categories with menus
-        Cache::forget('categories_with_menus');
-        Cache::remember('categories_with_menus', now()->addMinutes(60), function () {
-            return Category::with(['menus'])->get();
-        });
         return redirect(route('product'))->with('success', 'Product Sukses Diupdate !');
     }
 
@@ -132,8 +126,7 @@ class ProductController extends Controller
         CartMenu::where('menu_id', $id)->delete();
         Menu::destroy($id);
 
-        Cache::forget('menus');
-        Cache::forget('categories');
+        Cache::forget('menus_user_' . Auth::id());
 
         return redirect(route('product'))->with('success', 'Product Berhasil Dihapus !');
     }

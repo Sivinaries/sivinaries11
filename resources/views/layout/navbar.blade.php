@@ -14,7 +14,7 @@
             </div>
         </div>
         @if(auth()->check())
-            <a href="{{ route('profil') }}" class="my-auto">
+            <a href="" class="my-auto">
                 <div class="flex space-x-2 md:space-x-4">
                     <div class="hidden md:block my-auto">
                         <h1 class="text-sm font-base">

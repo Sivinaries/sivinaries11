@@ -15,13 +15,11 @@ return new class extends Migration
             $table->id();
             $table->string('name');
             $table->string('no_telpon')->nullable();
-            $table->string('level')->default('user'); 
+            $table->string('level')->default('User'); 
             $table->string('email')->nullable()->unique();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
             $table->string('google_id')->nullable();
-            $table->string('qr_token')->nullable()->unique();
-            $table->string('device_id')->nullable(); 
             $table->rememberToken();
             $table->timestamps();
         });

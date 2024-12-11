@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Models\Chair;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -36,8 +37,6 @@ class AuthController extends Controller
             return redirect()->back()->withErrors($validator)->withInput();
         }
 
-        $qrToken = Str::random(32);
-
         $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
@@ -45,7 +44,6 @@ class AuthController extends Controller
         ]);
 
         $user->level = 'User';
-        $user->qr_token = $qrToken;
         $user->save();  // Save the additional attributes
 
         $token = $user->createToken('auth_token')->plainTextToken;
@@ -56,60 +54,67 @@ class AuthController extends Controller
 
     public function signin(Request $request)
     {
-        $qrToken = Str::random(40);
-
-        $deviceId = Str::random(16); // Always generates a new 16 character string
-
         if ($request->has('qrToken')) {
-            $name = $request->input('name'); // Default to 'Unknown User' if no name is provided
-
-            $user = new User();
-            $user->name = $name;
-            $user->level = 'Pivot';
-            $user->password = bcrypt('123456');
-            $user->email = $deviceId . '@device.com'; // Generate email using the new deviceId
-            $user->device_id = $deviceId; // Attach the new deviceId
-            $user->qr_token = $qrToken; // Save the QR token
-            $user->save();
-
-            Auth::login($user);
-
-            $token = $user->createToken('auth_token')->plainTextToken;
-
-            if ($user->level === 'Admin') {
-                return redirect()->route('dashboard')->with('auth_token', $token);
+            $validatedData = $request->validate([
+                'name' => 'required|string|max:255',
+                'storeId' => 'required|string|max:255',
+                'qrToken' => 'required|string|exists:chairs,qr_token',
+            ]);
+    
+            $name = $validatedData['name'];
+            $storeId = $validatedData['storeId'];
+            $qrToken = $validatedData['qrToken'];
+    
+            $chair = Chair::where('qr_token', $qrToken)->first();
+    
+            if (!$chair) {
+                return redirect()->route('login')->withErrors(['error' => 'Invalid QR Token']);
             }
-
-            return redirect()->route('user-home')->with('auth_token', $token)->with('toast_success', 'Login successful!');;
+    
+            $deviceId = Str::random(16);
+            $qrTokenNew = Str::random(32);
+            $chair = Chair::create([
+                'name' => $name,
+                'store_id' => $storeId,
+                'level' => 'Pivot',
+                'email' => $deviceId . '@device.com',
+                'password' => bcrypt('123456'),
+                'qr_token' => $qrTokenNew, // Ensure qrToken is set
+            ]);
+    
+            Auth::guard('chair')->login($chair);
+    
+            $token = $chair->createToken('auth_token')->plainTextToken;
+    
+            return redirect()->route('user-home')
+                ->with('auth_token', $token)
+                ->with('toast_success', 'Login successful!');
         }
-
+    
         $credentials = $request->only('email', 'password');
-
+    
         if (!Auth::attempt($credentials)) {
             return redirect()->route('login')->withErrors(['email' => 'Unauthorized']);
         }
-
-        // Handle regular login
+    
         $user = Auth::user();
         $token = $user->createToken('auth_token')->plainTextToken;
-
-        if ($user->level === 'Admin') {
-            return redirect()->route('dashboard')->with('auth_token', $token)->with('toast_success', 'Login successful!');;
-        }
-
-        return redirect()->route('user-home')->with('auth_token', $token)->with('toast_success', 'Login successful!');;
+    
+        return redirect()->route('dashboard')->with('auth_token', $token)->with('toast_success', 'Login successful!');
     }
-
+        
     public function logout(Request $request)
     {
-        if ($user = Auth::guard('web')->user()) {
-            $user->device_id = null;
-            $user->save(); // Save the change to the database
-
-            $user->tokens()->delete();
+        foreach (config('auth.guards') as $guard => $guardConfig) {
+            if (Auth::guard($guard)->check()) {
+                $user = Auth::guard($guard)->user();
+                if ($user) {
+                    $user->tokens()->delete();
+                }
+                    Auth::guard($guard)->logout();
+            }
         }
-
-        Auth::guard('web')->logout();
-        return redirect()->route('login')->with('toast_success', 'Logged Out Successful!');;
+    
+        return redirect()->route('login')->with('toast_success', 'Logged Out Successfully!');
     }
-}
+    }

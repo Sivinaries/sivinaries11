@@ -5,46 +5,78 @@ namespace App\Http\Controllers;
 use App\Models\Menu;
 use App\Models\User;
 use App\Models\Order;
+use App\Models\Store;
 use Ramsey\Uuid\Uuid;
-use App\Models\Profil;
 use App\Models\CartMenu;
 use App\Models\Category;
 use App\Models\Discount;
 use App\Models\Showcase;
 use Illuminate\Http\Request;
+use function Laravel\Prompts\select;
+
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 
 class CustomerController extends Controller
 {
+    public function store()
+    {
+        $stores = Cache::remember('stores', now()->addMinutes(60), function () {
+            return Store::all();
+        });
+
+        return view('user.store', compact('stores'));
+    }
+
     public function home()
     {
-        $showcase = Cache::remember('showcase', now()->addMinutes(60), function () {
-            return Showcase::select('id', 'img')->get();
+        if (!Auth::guard('chair')->check()) {
+            return redirect('/');
+        }
+
+        $chairStore = Auth::guard('chair')->user()->store;
+
+        $storeKey = 'store_chair_' . Auth::id();
+        $showKey = 'show_chair_' . Auth::id();
+        $menusKey = 'menus_chair_' . Auth::id(); // Cache key for menus
+
+        $store = Cache::remember($storeKey, now()->addMinutes(60), function () use ($chairStore) {
+            return $chairStore;
         });
 
-        $profil = Cache::remember('profil', now()->addMinutes(60), function () {
-            return Profil::select('id', 'name', 'alamat')->get();
+        $showcase = Cache::remember($showKey, now()->addMinutes(60), function () use ($chairStore) {
+            return $chairStore->showcases()->select('id', 'img')->get()->toArray();
         });
 
-        $menus = Cache::remember('menus', now()->addMinutes(60), function () {
-            return Menu::select('id', 'name', 'price', 'img')->paginate(10); // Use pagination
+        $menus = Cache::remember($menusKey, now()->addMinutes(60), function () use ($chairStore) {
+            return $chairStore->menus()->select('id', 'name', 'price', 'img')->paginate(10);
         });
 
-        return view('user.home', compact('profil', 'menus', 'showcase'));
+        return view('user.home', compact('store', 'menus', 'showcase'));
     }
 
     public function product()
     {
-        $category = Cache::remember('categories_with_menus', now()->addMinutes(60), function () {
-            return Category::with(['menus'])->get();
+        if (!Auth::guard('chair')->check()) {
+            return redirect('/');
+        }
+
+        $chairStore = Auth::guard('chair')->user()->store;
+
+        $categoryKey = 'category_chair_' . Auth::id();
+
+        $category = Cache::remember($categoryKey, now()->addMinutes(60), function () use ($chairStore) {
+            return $chairStore->categories()->with('menus')->get();
         });
 
-        $user = auth()->user();
+        $chair = auth()->user();
 
-        $cart = $user->carts()->latest()->first();
+        $cart = $chair->carts()->latest()->first();
 
         if (!$cart) {
-            $cart = $user->carts()->create([]);
+            $cart = $chair->carts()->create([
+                'store_id' => $chairStore->id,
+            ]);
         }
 
         return view('user.product', compact('category', 'cart'));
@@ -52,12 +84,16 @@ class CustomerController extends Controller
 
     public function cart()
     {
-        $user = auth()->user();
+        $chairStore = Auth::guard('chair')->user()->store;
 
-        $cart = $user->carts()->with(['cartMenus.menu'])->latest()->first();
+        $chair = auth()->user();
+
+        $cart = $chair->carts()->with(['cartMenus.menu'])->latest()->first();
 
         if (!$cart) {
-            $cart = $user->carts()->create([]);
+            $cart = $chair->carts()->create([
+                'store_id' => $chairStore->id,
+            ]);
         }
 
         return view('user.cart', compact('cart'));
@@ -68,6 +104,7 @@ class CustomerController extends Controller
         $menu = Cache::remember("menu_{$id}", now()->addMinutes(60), function () use ($id) {
             return Menu::find($id);
         });
+
         $discount = Cache::remember('discounts', now()->addMinutes(60), function () {
             return Discount::all();
         });
@@ -130,8 +167,9 @@ class CustomerController extends Controller
 
     public function removecart($id)
     {
-        $user = auth()->user();
-        $cart = $user->carts()->latest()->first();
+        $chair = auth()->user();
+
+        $cart = $chair->carts()->latest()->first();
 
         $cartMenu = CartMenu::findOrFail($id);
 
@@ -154,9 +192,9 @@ class CustomerController extends Controller
 
     public function locate()
     {
-        $user = auth()->user();
+        $chair = auth()->user();
 
-        $cart = $user->carts()->latest()->first();
+        $cart = $chair->carts()->latest()->first();
 
         $order = Order::where('cart_id', $cart->id)->first();
 
@@ -165,9 +203,9 @@ class CustomerController extends Controller
 
     public function payment(Request $request)
     {
-        $user = auth()->user();
+        $chair = auth()->user();
 
-        $cart = $user->carts()->with('cartMenus.menu')->latest()->first();
+        $cart = $chair->carts()->with('cartMenus.menu')->latest()->first();
 
         $order = Order::where('cart_id', $cart->id)->first();
 
@@ -176,9 +214,11 @@ class CustomerController extends Controller
 
     public function postDineIn()
     {
-        $user = auth()->user();
-        $cabang = Profil::pluck('alamat')->first();
-        $cart = $user->carts()->with('user')->latest()->first();
+        $chairStore = Auth::guard('chair')->user()->store;
+
+        $chair = auth()->user();
+
+        $cart = $chair->carts()->with('user')->latest()->first();
 
         if (!$cart) {
             return redirect()->back()->with('error', 'No cart found.');
@@ -194,7 +234,7 @@ class CustomerController extends Controller
         } else {
             $order = new Order();
             $order->cart_id = $cart->id;
-            $order->cabang = $cabang;
+            $order->store_id = $chairStore->id;
             $order->layanan = 'dineIn';
             $order->alamat = null; // Set alamat to null
             $order->ongkir = null; // Set ongkir to null    
@@ -207,7 +247,7 @@ class CustomerController extends Controller
     public function postDelivery(Request $request)
     {
         $user = auth()->user();
-        $cabang = Profil::pluck('alamat')->first();
+        // $cabang = Profil::pluck('alamat')->first();
         $cart = $user->carts()->with('user')->latest()->first();
 
         if (!$cart) {
@@ -250,17 +290,18 @@ class CustomerController extends Controller
 
     public function postorder(Request $request)
     {
-        $user = auth()->user();
+        $chairStore = Auth::guard('chair')->user()->store->id;
+
+        $chair = auth()->user();
 
         $request->validate([
             'no_telpon' => 'required|string|max:15',
             'atas_nama' => 'required|string|max:255',
-            'cabang' => 'required|string|max:255',
             'alamat' => 'nullable',
             'ongkir' => 'nullable',
         ]);
 
-        $cart = $user->carts()->with('cartMenus.menu')->latest()->first();
+        $cart = $chair->carts()->with('cartMenus.menu')->latest()->first();
 
         if (!$cart || $cart->cartMenus->isEmpty()) {
             return redirect()->route('user-cart')->with('error', 'Your cart is empty.');
@@ -275,6 +316,7 @@ class CustomerController extends Controller
         $orderId = 'ORDER-' . strtoupper(substr(Uuid::uuid4()->toString(), 0, 8));
 
         $order->update([
+            'store_id' => $chairStore,
             'no_order' => $orderId,
             'atas_nama' => $request->atas_nama,
             'no_telpon' => $request->no_telpon,
@@ -296,11 +338,11 @@ class CustomerController extends Controller
 
         $snapToken = \Midtrans\Snap::getSnapToken($params);
 
-        $user->carts()->create();
+        $chair->carts()->create();
 
         return view('user.checkout', compact('order', 'snapToken'));
     }
-    
+
     public function antrian()
     {
         $orders = Order::with(['cart.user', 'cart.cartMenus.menu'])->get();

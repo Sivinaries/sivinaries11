@@ -58,7 +58,7 @@
                                                 <form
                                                     class="p-2 text-white hover:text-black bg-red-500 rounded-xl text-center"
                                                     method="post"
-                                                    action="{{ route('deluser', ['id' => $item->id]) }}">
+                                                    action="{{ route('delchair', ['id' => $item->id]) }}">
                                                     @csrf
                                                     @method('delete')
                                                     <button type="submit">Delete</button>

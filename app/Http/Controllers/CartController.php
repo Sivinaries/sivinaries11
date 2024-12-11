@@ -7,13 +7,23 @@ use App\Models\Menu;
 use App\Models\CartMenu;
 use App\Models\Discount;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class CartController extends Controller
 {
-
     public function index()
     {
-        $menus = Menu::all();
+        if (!Auth::check()) {
+            return redirect('/');
+        }
+
+        $userStore = Auth::user()->store;
+
+        if (!$userStore) {
+            return redirect()->route('addstore');
+        }
+
+        $menus = $userStore->menus;
 
         return view('addcart', compact('menus'));
     }
@@ -88,6 +98,6 @@ class CartController extends Controller
         $cart->update(['total_amount' => $cart->total_amount - $subtotal]);
 
 
-        return redirect()->route('createorder');
+        return redirect()->route('addorder');
     }
 }

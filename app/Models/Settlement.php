@@ -8,11 +8,25 @@ use Illuminate\Database\Eloquent\Model;
 class Settlement extends Model
 {
     use HasFactory;
-    protected $fillable = ['user_id', 'start_time', 'end_time', 'start_amount', 'total_amount','expected'];
+    protected $fillable =
+    [
+        'store_id',
+        'user_id',
+        'start_time',
+        'end_time',
+        'start_amount',
+        'total_amount',
+        'expected'
+    ];
 
     public function user()
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function store()
+    {
+        return $this->belongsTo(Store::class);
     }
 
     public function histoys()

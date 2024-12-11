@@ -33,8 +33,8 @@
                                 <th>No</th>
                                 <th>Date</th>
                                 <th>Order Id</th>
-                                <th>Nama</th>
                                 <th>Layanan</th>
+                                <th>User</th>
                                 <th>Chair</th>
                                 <th>Order</th>
                                 <th>Payment</th>
@@ -50,27 +50,31 @@
                                 @foreach ($orders as $order)
                                     <tr class="border-2">
                                         <td>{{ $no++ }}</td>
-                                        <td>{{ $order->created_at }}</td>
-                                        <td>{{ $order->no_order }}</td>
-                                        <td>{{ $order->atas_nama }}</td>
-                                        <td>{{ $order->layanan }}</td>
-                                        <td>{{ $order->cart->user->name }}</td>
+                                        <td>{{ $order->created_at ?? 'N/A' }}</td>
+                                        <td>{{ $order->no_order ?? 'N/A' }}</td>
+                                        <td>{{ $order->layanan ?? 'N/A' }}</td>
+                                        <td>{{ $order->cart->user->name ?? 'N/A' }}</td>
+                                        <td>{{ $order->cart->chair->name ?? 'N/A' }}</td>
                                         <td>
-                                            @foreach ($order->cart->cartMenus as $cartMenu)
-                                                {{ $cartMenu->menu->name }} - {{ $cartMenu->quantity }} -
-                                                {{ $cartMenu->notes }} <br />
-                                            @endforeach
+                                            @if ($order->cart->cartMenus)
+                                                @foreach ($order->cart->cartMenus as $cartMenu)
+                                                    {{ $cartMenu->menu->name ?? 'N/A' }} - 
+                                                    {{ $cartMenu->quantity ?? 0 }} - 
+                                                    {{ $cartMenu->notes ?? 'No notes' }} <br />
+                                                @endforeach
+                                            @else
+                                                No items
+                                            @endif
                                         </td>
-                                        <td>{{ $order->payment_type }}</td>
+                                        <td>{{ $order->payment_type ?? 'N/A' }}</td>
                                         <td>
-                                            Rp. {{ number_format($order->cart->total_amount, 0, ',', '.') }}
+                                            Rp. {{ number_format($order->cart->total_amount ?? 0, 0, ',', '.') }}
                                         </td>
-                                        <td>{{ $order->alamat }}</td>
-                                        <td>{{ $order->status }}</td>
+                                        <td>{{ $order->alamat ?? 'N/A' }}</td>
+                                        <td>{{ $order->status ?? 'Unknown' }}</td>
                                         <td class="flex gap-2">
                                             <div class="w-full">
-                                                <form action="{{ route('archive', ['orderId' => $order->id]) }}"
-                                                    method="POST">
+                                                <form action="{{ route('archive', ['orderId' => $order->id]) }}" method="POST">
                                                     @csrf
                                                     <button type="submit"
                                                         class="p-2 w-full text-white hover:text-black bg-blue-500 rounded-xl text-center">
@@ -93,7 +97,7 @@
                                 @endforeach
                             </tbody>
                         </table>
-                    </div>
+                                            </div>
                 </div>
             </div>
         </div>

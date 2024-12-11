@@ -11,14 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('profils', function (Blueprint $table) {
+        Schema::create('stores', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained()->onUpdate('cascade')->onDelete('cascade');
-            $table->string('name');
-            $table->string('alamat');
-            $table->string('jam');
-            $table->string('no_wa');
-            $table->string('deskripsi');
+            $table->string('store');
+            $table->string('address');
             $table->timestamps();
         });
     }
@@ -28,6 +25,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('profils');
+        Schema::dropIfExists('stores');
     }
 };

@@ -4,14 +4,27 @@ namespace App\Http\Controllers;
 
 use App\Models\Showcase;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 
 class ShowcaseController extends Controller
 {
     public function index()
     {
-        $showcase = Cache::remember('showcases', now()->addMinutes(60), function () {
-            return Showcase::all();
+        if (!Auth::check()) {
+            return redirect('/');
+        }
+
+        $userStore = Auth::user()->store;
+
+        if (!$userStore) {
+            return redirect()->route('addstore');
+        }
+
+        $cacheKey = 'showcases_user_' . Auth::id();
+
+        $showcase = Cache::remember($cacheKey, now()->addMinutes(60), function () use ($userStore) {
+            return $userStore->showcases;
         });
     
         return view('showcase', compact('showcase'));
@@ -24,6 +37,8 @@ class ShowcaseController extends Controller
 
     public function store(Request $request)
     {
+        $userStore = auth()->user()->store;
+
         $data = $request->validate([
             'name' => 'required',
             'img' => 'required|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
@@ -36,12 +51,11 @@ class ShowcaseController extends Controller
             $data['img'] = 'img/' . $imageName;
         }
 
+        $data['store_id'] = $userStore->id;
+
         Showcase::create($data);
 
-        Cache::forget('showcase');
-        Cache::remember('showcase', now()->addMinutes(60), function () {
-            return Showcase::all();
-        });
+        Cache::forget('showcases_user_' . Auth::id());
 
         return redirect(route('showcase'))->with('success', 'Showcase Sukses Dibuat !');
     }
@@ -55,6 +69,8 @@ class ShowcaseController extends Controller
 
     public function update(Request $request, $id)
     {
+        $userStore = auth()->user()->store;
+
         $request->validate([
             'name' => 'required',
             'img' => 'image|mimes:jpeg,png,jpg,gif,svg|max:2048',
@@ -69,12 +85,11 @@ class ShowcaseController extends Controller
             $data['img'] = 'img/' . $imageName;
         }
 
+        $data['store_id'] = $userStore->id;
+
         Showcase::where('id', $id)->update($data);
 
-        Cache::forget('showcases');
-        Cache::remember('showcases', now()->addMinutes(60), function () {
-            return Showcase::all();
-        });
+        Cache::forget('showcases_user_' . Auth::id());
 
         return redirect(route('showcase'))->with('success', 'Showcase Sukses Diupdate !');
     }
@@ -83,7 +98,7 @@ class ShowcaseController extends Controller
     {
         Showcase::destroy($id);
 
-        Cache::forget('showcases');
+        Cache::forget('showcases_user_' . Auth::id());
 
         return redirect(route('showcase'))->with('success', 'Showcase Berhasil Dihapus !');
     }

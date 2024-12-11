@@ -3,17 +3,30 @@
 namespace App\Http\Controllers;
 
 use App\Models\Histoy;
-use Illuminate\Http\Request;
-use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\OrderExport;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Support\Facades\Cache;
 
 class HistoyController extends Controller
 {
     public function index()
     {
-        $history = Cache::remember('history', now()->addMinutes(60), function () {
-            return Histoy::all();
+        if (!Auth::check()) {
+            return redirect('/');
+        }
+
+        $userStore = Auth::user()->store;
+
+        if (!$userStore) {
+            return redirect()->route('addstore');
+        }
+
+        $cacheKey = 'histories_user_' . Auth::id();
+
+        $history = Cache::remember($cacheKey, now()->addMinutes(60), function () use ($userStore) {
+            return $userStore->histories;
         });
 
         return view('history', ['history' => $history]);

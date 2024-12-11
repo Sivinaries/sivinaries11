@@ -3,11 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
-use Illuminate\Support\Str;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Validator;
-
 
 class UserController extends Controller
 {
@@ -18,43 +13,6 @@ class UserController extends Controller
         
         return view('user', compact('users'));
     }
-
-    public function create()
-    {
-
-        return view('adduser');
-    }
-
-    public function store(Request $request)
-    {
-        $validator = Validator::make($request->all(), [
-            'name' => 'required|string|max:255',
-            'email' => 'required|string|max:255|unique:users',
-            'password' => 'required|string|min:8'
-        ]);
-
-        if ($validator->fails()) {
-            return redirect()->back()->withErrors($validator)->withInput();
-        }
-
-        $qrToken = Str::random(32);
-
-        $user = User::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'password' => Hash::make($request->password)
-        ]);
-
-        $user->level = 'Cashier';
-        $user->qr_token = $qrToken;
-        $user->save();
-
-        $token = $user->createToken('auth_token')->plainTextToken;
-
-        return redirect('/users')->with('toast_success', 'Registration successful!')
-            ->with('access_token', $token);
-    }
-
 
     public function destroy($id)
     {

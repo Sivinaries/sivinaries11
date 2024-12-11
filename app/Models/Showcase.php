@@ -10,7 +10,14 @@ class Showcase extends Model
     use HasFactory;
     protected $fillable =
     [
+        'store_id',
         'name',
         'img',
     ];
+
+    public function store()
+    {
+        return $this->belongsTo(Store::class);
+    }
+
 }

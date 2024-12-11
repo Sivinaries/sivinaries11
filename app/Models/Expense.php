@@ -8,6 +8,16 @@ use Illuminate\Database\Eloquent\Model;
 class Expense extends Model
 {
     use HasFactory;
-    protected $fillable = ['name', 'nominal'];
+    protected $fillable =
+    [
+        'store_id',
+        'name',
+        'nominal'
+    ];
+
+    public function store()
+    {
+        return $this->belongsTo(Store::class);
+    }
 
 }

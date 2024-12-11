@@ -9,6 +9,7 @@ class Histoy extends Model
 {
     use HasFactory;
     protected $fillable = [
+        'store_id',
         'kursi',
         'name',
         'no_order',
@@ -22,6 +23,11 @@ class Histoy extends Model
     public function settlement()
     {
         return $this->belongsTo(Settlement::class);
+    }
+
+    public function store()
+    {
+        return $this->belongsTo(Store::class);
     }
 
 }

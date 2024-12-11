@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <title>Users</title>
+    <title>Chairs</title>
     @include('layout.head')
     <link
       href="//cdn.datatables.net/2.0.2/css/dataTables.dataTables.min.css"
@@ -22,7 +22,7 @@
           <div class="p-8">
             <div class="space-y-8">
               <div class="mx-auto text-center">
-                <h1 class="text-3xl">QR Code for {{ $user->name }}</h1>
+                <h1 class="text-3xl">QR Code for {{ $chair->name }}</h1>
               </div>
               <div class="mx-auto text-center">
                 <img class="text-center mx-auto" src="{{ asset('storage/' . $filename) }}" alt="QR Code" />

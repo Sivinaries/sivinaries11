@@ -5,15 +5,27 @@ namespace App\Http\Controllers;
 use Carbon\Carbon;
 use App\Models\Settlement;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Log;
 
 class SettlementController extends Controller
 {
     public function index()
     {
-        $settlements = Cache::remember('settlements_with_users', now()->addMinutes(60), function () {
-            return Settlement::with(['user'])->get();
+        if (!Auth::check()) {
+            return redirect('/');
+        }
+
+        $userStore = Auth::user()->store;
+
+        if (!$userStore) {
+            return redirect()->route('addstore');
+        }
+
+        $cacheKey = 'settlements_user_' . Auth::id();
+
+        $settlements = Cache::remember($cacheKey, now()->addMinutes(60), function () use ($userStore) {
+            return $userStore->settlements()->with('user')->get();
         });
 
         return view('settlement', compact('settlements'));
@@ -36,7 +48,7 @@ class SettlementController extends Controller
         $user->settlements()->create($data);
 
         Cache::forget('settlements_with_users');
-        Cache::remember('settlements_with_users', now()->addMinutes(60), function(){
+        Cache::remember('settlements_with_users', now()->addMinutes(60), function () {
             return Settlement::all();
         });
 
@@ -66,7 +78,7 @@ class SettlementController extends Controller
 
         Cache::forget('settlements_with_users');
         Cache::forget("settlement_{$latestSettlement->id}");
-        Cache::remember('settlements_with_users', now()->addMinutes(60), function(){
+        Cache::remember('settlements_with_users', now()->addMinutes(60), function () {
             return Settlement::all();
         });
 

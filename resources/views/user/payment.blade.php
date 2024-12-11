@@ -75,12 +75,6 @@
                     </div>
 
                     <div class="space-y-2">
-                        <h1><span class="text-red-500">*</span> Cabang</h1>
-                        <input class="border w-full rounded-xl p-2" id="cabang" type="text" name="cabang"
-                            value="{{ $order->cabang }}" readonly>
-                    </div>
-
-                    <div class="space-y-2">
                         <h1><span class="text-red-500">*</span> Atas Nama</h1>
                         <input class="border w-full rounded-xl p-2" placeholder="John Doe" id="atas_nama" type="text"
                             name="atas_nama">
